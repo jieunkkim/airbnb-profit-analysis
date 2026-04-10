@@ -1,5 +1,5 @@
 // 앱 버전 (package.json과 동기화)
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.1.1';
 
 // 기본 거래 분류 규칙
 const DEFAULT_CATEGORY_RULES = [

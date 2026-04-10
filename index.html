@@ -575,23 +575,46 @@ const MONTH_COLORS = { '01':'m01','02':'m02','03':'m03','04':'m04','05':'m05','0
 const CAT_COLORS = ['#4f46e5','#0ea5e9','#10b981','#f59e0b','#ef4444','#ec4899','#8b5cf6','#14b8a6','#f97316','#6366f1','#84cc16','#06b6d4','#a78bfa'];
 
 function guessCategory(row) {
-  const combined = ((row.content||'')+' '+(row.memo||'')+' '+(row.txType||'')).toLowerCase();
+  const memo = (row.memo||'').toLowerCase();
+  const content = (row.content||'').toLowerCase();
+  const txType = (row.txType||'').toLowerCase();
+
+  // 특수 규칙 (거래유형 우선)
   if (row.txType==='세이프박스'||row.content==='세이프박스') return '9. 부가세';
   if ((row.txType||'').includes('부가세박스')) return '9. 부가세';
   if (row.txType==='캐시백') return '0. 수입';
   if (row.txType==='예금이자') return '0. 수입';
   if (row.txType==='국세환급금') return '4. 세금';
+
+  // 입금 관련 특수 규칙 (거래명에서만)
   if (row.inOut==='입금') {
-    if (combined.includes('airbnb')||combined.includes('한패스')) return '0. 수입';
-    if (combined.includes('payoneer')) return '0. 수입';
-    if (combined.includes('수익')||combined.includes('계약금')||combined.includes('선금')||combined.includes('잔금')) return '0. 수입';
-    if (combined.includes('수수료')) return '0. 수입';
+    if (content.includes('airbnb')||content.includes('한패스')) return '0. 수입';
+    if (content.includes('payoneer')) return '0. 수입';
+    if (content.includes('수익')||content.includes('계약금')||content.includes('선금')||content.includes('잔금')) return '0. 수입';
+    if (content.includes('수수료')) return '0. 수입';
   }
+
+  // 1. 메모에서 먼저 패턴 매칭 (우선도 높음)
   for (const rule of CATEGORY_RULES) {
     for (const p of rule.patterns) {
-      if (combined.includes(p)) return rule.cat;
+      if (memo.includes(p)) return rule.cat;
     }
   }
+
+  // 2. 거래명에서 패턴 매칭
+  for (const rule of CATEGORY_RULES) {
+    for (const p of rule.patterns) {
+      if (content.includes(p)) return rule.cat;
+    }
+  }
+
+  // 3. 거래유형에서 패턴 매칭
+  for (const rule of CATEGORY_RULES) {
+    for (const p of rule.patterns) {
+      if (txType.includes(p)) return rule.cat;
+    }
+  }
+
   return row.inOut==='입금' ? '0. 수입' : '10. 기타';
 }
 
