@@ -1,3 +1,6 @@
+// 앱 버전 (package.json과 동기화)
+const APP_VERSION = '1.0.3';
+
 // 기본 거래 분류 규칙
 const DEFAULT_CATEGORY_RULES = [
   { cat: '0. 수입', patterns: ['payoneer','airbnb','한패스','캐시백','이자','환급','국세환급금','계약금','선금','잔금','수수료','수익','오늘의집','김지은','김재언','태진희','박철형','성지현','문연희','이영민','안진영','카카오017','오집'], excluded: false },

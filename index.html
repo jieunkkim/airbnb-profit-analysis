@@ -568,17 +568,8 @@
 
 <script src="rules.js"></script>
 <script>
-// 버전 배지 초기화
-async function initVersion() {
-  try {
-    const response = await fetch('package.json');
-    const pkg = await response.json();
-    document.getElementById('versionBadge').textContent = `v${pkg.version}`;
-  } catch (e) {
-    console.log('Could not load package.json');
-  }
-}
-initVersion();
+// 버전 배지 설정 (rules.js의 APP_VERSION 사용)
+document.getElementById('versionBadge').textContent = `v${APP_VERSION}`;
 
 const MONTH_COLORS = { '01':'m01','02':'m02','03':'m03','04':'m04','05':'m05','06':'m06' };
 const CAT_COLORS = ['#4f46e5','#0ea5e9','#10b981','#f59e0b','#ef4444','#ec4899','#8b5cf6','#14b8a6','#f97316','#6366f1','#84cc16','#06b6d4','#a78bfa'];
