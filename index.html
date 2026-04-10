@@ -1117,12 +1117,11 @@ function downloadHTML() {
     <td style="text-align:center">${r.month?r.month+'월':'-'}</td>
   </tr>`).join('');
 
-  const htmlEnd = '</body></html>';
   const html = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>거래내역 리포트 ${today()}</title>
   <style>body{font-family:-apple-system,sans-serif;margin:0;padding:24px;background:#f3f4f6}h1{font-size:20px;font-weight:800;color:#1e1b4b;margin-bottom:20px}table{width:100%;border-collapse:collapse;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07);font-size:12px}thead{background:linear-gradient(135deg,#1e1b4b,#312e81);color:white}th{padding:12px 10px;text-align:left;font-weight:600;font-size:11px}td{padding:9px 10px;border-bottom:1px solid #f3f4f6}tr:nth-child(even){background:#fafafa}</style>
   </head><body><h1>📊 거래내역 리포트 · ${new Date().toLocaleDateString('ko-KR')} · ${allData.length}건</h1>
   <table><thead><tr><th>No.</th><th>거래일시</th><th>구분</th><th>거래금액</th><th>거래구분</th><th>거래내용</th><th>메모</th><th>내역구분</th><th>브랜드</th><th>월</th></tr></thead>
-  <tbody>${rows}</tbody></table>` + htmlEnd;
+  <tbody>${rows}</tbody></table></body></html>`;
 
   triggerDownload(html, `거래내역_리포트_${today()}.html`, 'text/html;charset=utf-8;');
   closeDownloadModal(); showToast('🌐 HTML 리포트 다운로드 완료!');
