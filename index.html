@@ -767,8 +767,10 @@ function renderMonthly(data) {
     monthMap[m] = { income:0, expense:0, count:0, cats:{}, brands:{단청:0,피카:0,'730':0} };
   });
 
+  const excludedCats = getExcludedCategories();
   data.forEach(r => {
     if (!r.month || !monthMap[r.month]) return;
+    if (excludedCats.includes(r.category)) return;
     const mObj = monthMap[r.month];
     const amt = Math.abs(r.amount);
     mObj.count++;
@@ -958,9 +960,10 @@ function renderMonthly(data) {
 function renderSummary(data) {
   const grid = document.getElementById('summaryGrid');
   let html = '';
+  const excludedCats = getExcludedCategories();
 
   BRANDS.forEach(brand => {
-    const bd = data.filter(r=>r.brand===brand);
+    const bd = data.filter(r=>r.brand===brand && !excludedCats.includes(r.category));
     if (!bd.length) return;
 
     const cats = {};
@@ -992,7 +995,11 @@ function renderSummary(data) {
   });
 
   let tIn=0, tOut=0;
-  data.forEach(r=>{ if(r.inOut==='입금') tIn+=Math.abs(r.amount); else tOut+=Math.abs(r.amount); });
+  data.forEach(r=>{
+    if (!excludedCats.includes(r.category)) {
+      if(r.inOut==='입금') tIn+=Math.abs(r.amount); else tOut+=Math.abs(r.amount);
+    }
+  });
 
   html += `<div style="background:white;border-radius:14px;padding:18px;box-shadow:0 2px 12px rgba(0,0,0,0.06);border-top:3px solid #6366f1">
     <div style="font-size:14px;font-weight:800;margin-bottom:12px">📊 전체 합산</div>
@@ -1158,10 +1165,16 @@ function renderRulesPanel() {
 
   CATEGORY_RULES.forEach((rule, idx) => {
     const patternsStr = rule.patterns.join(', ');
+    const excludedStatus = rule.excluded ? '제외중' : '포함';
+    const toggleColor = rule.excluded ? '#ef4444' : '#10b981';
     html += `
       <div style="border:1px solid #e5e7eb;border-radius:12px;padding:16px;background:#fafafa">
-        <div style="display:flex;gap:10px;margin-bottom:12px">
+        <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center">
           <input type="text" class="cat-input" value="${rule.cat}" style="flex:1;padding:8px;border:1px solid #d1d5db;border-radius:8px;font-weight:600" onchange="updateRuleCategory(${idx}, this.value)">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:6px 12px;background:white;border:1px solid #d1d5db;border-radius:8px;font-size:12px;font-weight:600;color:${toggleColor}">
+            <input type="checkbox" ${rule.excluded ? 'checked' : ''} onchange="updateRuleExcluded(${idx}, this.checked)" style="cursor:pointer">
+            ${excludedStatus}
+          </label>
           <button class="btn btn-secondary" onclick="deleteRule(${idx})" style="padding:6px 12px;font-size:12px">삭제</button>
         </div>
         <textarea style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:8px;font-size:12px;font-family:monospace;min-height:60px" onchange="updateRulePatterns(${idx}, this.value)">${patternsStr}</textarea>
@@ -1190,6 +1203,17 @@ function updateRulePatterns(idx, patternsStr) {
   }
 }
 
+function updateRuleExcluded(idx, excluded) {
+  if (CATEGORY_RULES[idx]) {
+    CATEGORY_RULES[idx].excluded = excluded;
+    saveCategoryRules(CATEGORY_RULES);
+    renderRulesPanel();
+    renderMonthly(allData);
+    renderSummary(allData);
+    showToast(excluded ? '✅ 합산에서 제외됨' : '✅ 합산에 포함됨');
+  }
+}
+
 function deleteRule(idx) {
   if (confirm(`"${CATEGORY_RULES[idx].cat}" 규칙을 삭제하시겠습니까?`)) {
     CATEGORY_RULES.splice(idx, 1);
@@ -1200,7 +1224,7 @@ function deleteRule(idx) {
 }
 
 function addNewRule() {
-  const newRule = { cat: '새 카테고리', patterns: ['패턴1', '패턴2'] };
+  const newRule = { cat: '새 카테고리', patterns: ['패턴1', '패턴2'], excluded: false };
   CATEGORY_RULES.push(newRule);
   saveCategoryRules(CATEGORY_RULES);
   renderRulesPanel();
