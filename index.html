@@ -470,6 +470,7 @@
           <thead>
             <tr>
               <th onclick="sortTable(0)">No.</th>
+              <th style="width:50px;text-align:center">제외</th>
               <th onclick="sortTable(1)">거래일시</th>
               <th onclick="sortTable(2)">구분</th>
               <th onclick="sortTable(3)">거래금액</th>
@@ -656,7 +657,8 @@ function parseRaw(text) {
       memo: cols[6] || '',
       category: '',
       brand: '',
-      month: ''
+      month: '',
+      excluded: false
     });
   }
   return rows;
@@ -719,9 +721,12 @@ function renderTable(data) {
     const origIdx = row._origIdx !== undefined ? row._origIdx : i;
     const catOpts = CATEGORIES.filter(c => !excludedCats.includes(c)).map(c=>`<option value="${c}" ${row.category===c?'selected':''}>${c}</option>`).join('');
     const brandOpts = BRANDS.map(b=>`<option value="${b}" ${row.brand===b?'selected':''}>${b}</option>`).join('');
+    const toggleState = row.excluded ? 'OFF' : 'ON';
+    const toggleColor = row.excluded ? '#ef4444' : '#10b981';
 
     html += `<tr>
       <td style="color:#9ca3af;font-size:11px">${i+1}</td>
+      <td style="text-align:center"><button class="toggle-exclude" onclick="updateRowExcluded(${origIdx},${!row.excluded})" style="background:${toggleColor};color:white;border:none;border-radius:4px;padding:4px 8px;font-size:11px;font-weight:700;cursor:pointer">${toggleState}</button></td>
       <td style="font-size:11px">${row.date}</td>
       <td>${row.inOut==='입금'?'<span style="color:#15803d;font-weight:700">↑입금</span>':'<span style="color:#dc2626;font-weight:700">↓출금</span>'}</td>
       <td>${formatAmt(row)}</td>
@@ -747,13 +752,25 @@ function updateField(idx, field, value) {
   }
 }
 
+function updateRowExcluded(idx, excluded) {
+  if (allData[idx]) {
+    allData[idx].excluded = excluded;
+    renderTable(getFilteredData());
+    updateChips(getFilteredData());
+    renderMonthly(allData);
+    renderSummary(allData);
+  }
+}
+
 function updateChips(data) {
   let inSum=0, outSum=0;
   data.forEach(r => {
+    if (r.excluded) return;
     if(r.inOut==='입금') inSum += Math.abs(r.amount);
     else outSum += Math.abs(r.amount);
   });
-  document.getElementById('chipTotal').textContent = `총 ${data.length}건`;
+  const filteredCount = data.filter(r => !r.excluded).length;
+  document.getElementById('chipTotal').textContent = `총 ${filteredCount}건`;
   document.getElementById('chipIn').textContent = `입금 ₩${inSum.toLocaleString('ko-KR')}`;
   document.getElementById('chipOut').textContent = `출금 ₩${outSum.toLocaleString('ko-KR')}`;
 }
@@ -801,6 +818,7 @@ function renderMonthly(data) {
   const excludedCats = getExcludedCategories();
   data.forEach(r => {
     if (!r.month || !monthMap[r.month]) return;
+    if (r.excluded) return;
     if (excludedCats.includes(r.category)) return;
     const mObj = monthMap[r.month];
     const amt = Math.abs(r.amount);
@@ -994,7 +1012,7 @@ function renderSummary(data) {
   const excludedCats = getExcludedCategories();
 
   BRANDS.forEach(brand => {
-    const bd = data.filter(r=>r.brand===brand && !excludedCats.includes(r.category));
+    const bd = data.filter(r=>r.brand===brand && !r.excluded && !excludedCats.includes(r.category));
     if (!bd.length) return;
 
     const cats = {};
@@ -1027,6 +1045,7 @@ function renderSummary(data) {
 
   let tIn=0, tOut=0;
   data.forEach(r=>{
+    if (r.excluded) return;
     if (!excludedCats.includes(r.category)) {
       if(r.inOut==='입금') tIn+=Math.abs(r.amount); else tOut+=Math.abs(r.amount);
     }
