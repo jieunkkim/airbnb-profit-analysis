@@ -690,10 +690,11 @@ function renderTable(data) {
     return;
   }
 
+  const excludedCats = getExcludedCategories();
   let html = '';
   data.forEach((row,i) => {
     const origIdx = row._origIdx !== undefined ? row._origIdx : i;
-    const catOpts = CATEGORIES.map(c=>`<option value="${c}" ${row.category===c?'selected':''}>${c}</option>`).join('');
+    const catOpts = CATEGORIES.filter(c => !excludedCats.includes(c)).map(c=>`<option value="${c}" ${row.category===c?'selected':''}>${c}</option>`).join('');
     const brandOpts = BRANDS.map(b=>`<option value="${b}" ${row.brand===b?'selected':''}>${b}</option>`).join('');
 
     html += `<tr>
@@ -758,7 +759,8 @@ function updateControls(data) {
   const mSel = document.getElementById('filterMonth');
   mSel.innerHTML = '<option value="">전체</option>' + months.map(m=>`<option value="${m}">${m}월</option>`).join('');
 
-  const cats = [...new Set(data.map(r=>r.category))].filter(Boolean).sort();
+  const excludedCats = getExcludedCategories();
+  const cats = [...new Set(data.map(r=>r.category).filter(c => !excludedCats.includes(c)))].filter(Boolean).sort();
   const cSel = document.getElementById('filterCat');
   cSel.innerHTML = '<option value="">전체</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
 }
@@ -1215,6 +1217,8 @@ function updateRuleExcluded(idx, excluded) {
     saveCategoryRules(CATEGORY_RULES);
     renderRulesPanel();
     if (allData.length) {
+      renderTable(getFilteredData());
+      updateControls(allData);
       renderMonthly(allData);
       renderSummary(allData);
     }

@@ -1,6 +1,6 @@
 {
   "name": "airbnb-profit-analysis",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "에어비앤비 거래내역 자동분류기",
   "scripts": {
     "dev": "live-server --port=3000"
