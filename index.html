@@ -1223,8 +1223,10 @@ function updateRuleExcluded(idx, excluded) {
     CATEGORY_RULES[idx].excluded = excluded;
     saveCategoryRules(CATEGORY_RULES);
     renderRulesPanel();
-    renderMonthly(allData);
-    renderSummary(allData);
+    if (allData.length) {
+      renderMonthly(allData);
+      renderSummary(allData);
+    }
     showToast(excluded ? '✅ 합산에서 제외됨' : '✅ 합산에 포함됨');
   }
 }
