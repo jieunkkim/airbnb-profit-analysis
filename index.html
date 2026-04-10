@@ -1054,7 +1054,6 @@ function openDownloadModal() {
   document.getElementById('downloadModal').classList.add('show');
 }
 function closeDownloadModal() { document.getElementById('downloadModal').classList.remove('show'); }
-function closeModalOutside(e) { if (e.target===document.getElementById('downloadModal')) closeDownloadModal(); }
 
 function downloadCSV() {
   const headers = ['거래일시','구분','거래금액','거래후잔액','거래구분','거래내용','메모','내역구분','구분(브랜드)','구분(월)'];
